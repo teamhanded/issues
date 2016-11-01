@@ -22,7 +22,6 @@ First, check the cluster status.
   "active_shards_percent_as_number" : 99.69135802469135
 }
 
-
 Then, check the log shards left unassigned.
 
 ~ # curl -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED
@@ -41,10 +40,9 @@ Now we will re-route the unassigned shards to any of the three available LogSear
 
 Change index key with the log filename listed as UNASSIGNED. Note that you can use logsearch1/2/3 as a value, these being example hostnames for a three-node cluster. Alternatively, try shard 0 if it's not being processed.
 
-
 After the task is finished, check if there are any missing steps with
 
-curl -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED
+~ # curl -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED
 
 again and repeat step 3 until the command's output is blank.
 
@@ -69,4 +67,4 @@ Check that the cluster status is in GREEN.
   "task_max_waiting_in_queue_m"
 }
 
-In case you have multiple shards to reroute, here's a Python script for going through all of them.
+In case you have multiple shards to reroute, here's a Python script for going through all of them (uses elasticsearch-py >=2.0).
