@@ -2,6 +2,7 @@ Sometimes you'll have your ElasticSearch cluster health not ok, since some log s
 
 First, check the cluster status.
 
+```
 ~ # curl -XGET 'http://localhost:9200/_cluster/health?pretty=true'
 
 {
@@ -21,14 +22,16 @@ First, check the cluster status.
   "task_max_waiting_in_queue_millis" : 0,
   "active_shards_percent_as_number" : 99.69135802469135
 }
+```
 
 Then, check the log shards left unassigned.
 
-~ # curl -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED
+`~ # curl -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED`
 
 Note the numerical value next to each file entry. In this case, it was 3 and the unassigned sharded log file in the shard was haproxy-2016.08.27.
 Now we will re-route the unassigned shards to any of the three available LogSearch clustered hosts. We will issue this JSON POST request and complete it with the data we've gathered so far.
 
+```
 ~ # curl -XPOST -d '{ "commands" : [ {
   "allocate" : {
        "index" : "haproxy-2016.08.27",
@@ -37,17 +40,19 @@ Now we will re-route the unassigned shards to any of the three available LogSear
        "allow_primary":true
      }
   } ] }' http://localhost:9200/_cluster/reroute?pretty
+```
 
 Change index key with the log filename listed as UNASSIGNED. Note that you can use logsearch1/2/3 as a value, these being example hostnames for a three-node cluster. Alternatively, try shard 0 if it's not being processed.
 
 After the task is finished, check if there are any missing steps with
 
-~ # curl -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED
+`~ # curl -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED`
 
 again and repeat step 3 until the command's output is blank.
 
 Check that the cluster status is in GREEN.
 
+```
 ~ # curl -XGET 'http://localhost:9200/_cluster/health?pretty=true'
 
 {
@@ -66,5 +71,6 @@ Check that the cluster status is in GREEN.
   "number_of_in_flight_fetch" : 0,
   "task_max_waiting_in_queue_m"
 }
+```
 
 In case you have multiple shards to reroute, here's a Python script for going through all of them (uses elasticsearch-py >=2.0).
